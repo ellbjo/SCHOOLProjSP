@@ -14,7 +14,7 @@ namespace SCHOOLProj
             //repo1.GetAvarageSalaryOnRoleForEachMonth();
             //repo1.AddPersonell();
             //repo1.GetAmountOfEmployeesForEachRole();
-            repo1.SetGrade();
+            //repo1.SetGrade();
             repo1.GetStudentOnId(3);
 
         }
