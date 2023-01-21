@@ -102,7 +102,7 @@ namespace SCHOOLProj
 
             foreach (DataRow dr1 in t2.Rows)
             {
-                Console.WriteLine($"ID: {dr1["StudentId"]}, Name: {dr1["StudentFName"]} {dr1["StudentLName"]}, Date of Birth: {dr1["DOB"]}, Class: {dr1["Class"]}");
+                Console.WriteLine($"ID: {dr1["StudentId"]}, Name: {dr1["StudentFName"]} {dr1["StudentLName"]}, Date of Birth: {dr1["DOB"]?.ToString()?.Substring(0,10)}, Class: {dr1["Class"]}");
             }
         }
 
@@ -247,7 +247,7 @@ namespace SCHOOLProj
                                     ;
                 foreach (var s in students)
                 {
-                    Console.WriteLine($"Student: {s.StudentFname} {s.StudentLname}");
+                    Console.WriteLine($"Student: {s.StudentFname} {s.StudentLname} Date of Birth: {s.Dob?.ToString("yyyy-MM-dd")}");
 
                 }
             }
