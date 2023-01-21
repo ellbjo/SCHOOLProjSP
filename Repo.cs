@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SCHOOLProj
 {
@@ -22,7 +23,7 @@ namespace SCHOOLProj
 
         public void GetPersonell()
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("-----------------Get Personell------------------");
 
             string testCommand = "SELECT Personell.PersonellFName, Personell.PersonellLName, Personell.PersonellRole, Personell.Startdate FROM Personell";
             SqlDataAdapter data = new SqlDataAdapter(testCommand, sqlcon);
@@ -36,7 +37,7 @@ namespace SCHOOLProj
         }
         public void AddStudent()
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("-----------------Adding Student------------------");
 
             Console.WriteLine("Firstname: ");
             var studentFName = Console.ReadLine();
@@ -56,7 +57,7 @@ namespace SCHOOLProj
 
         public void AddPersonell()
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("----------------Adding Personell-------------------");
 
             Console.WriteLine("Firstname: ");
             var personellFName = Console.ReadLine();
@@ -77,7 +78,7 @@ namespace SCHOOLProj
         }
         public void GetStudents()
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("------------------Student Information-----------------");
 
             string getStudentCommand = "SELECT Students.StudentId, Students.StudentFName, Students.StudentLName FROM Students";
             SqlDataAdapter data = new SqlDataAdapter(getStudentCommand, sqlcon);
@@ -92,7 +93,7 @@ namespace SCHOOLProj
 
         public void GetStudentOnId(int id)
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("------------------Student Info-----------------");
 
             string getStudentCommand = "SELECT Students.StudentId, Students.StudentFName, Students.StudentLName, Students.DOB, Students.Class FROM Students where Students.StudentId = '" + id + "';";
             SqlDataAdapter data = new SqlDataAdapter(getStudentCommand, sqlcon);
@@ -105,17 +106,25 @@ namespace SCHOOLProj
             }
         }
 
-        public void ShowCourses()
+        public void ShowAllCourses()
         {
-            Console.WriteLine("-----------------------------------");
-
+            Console.WriteLine("---------------All Courses--------------------");
+            using (var context = new SCHOOLContext())
+            {
+                var courses = from c in context.Courses
+                                    select c;
+                foreach (var c in courses)
+                {
+                    Console.WriteLine(c.Subject);
+                }
+            }
 
 
         }
 
         public void SetGrade()
         {
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("-----------------Setting Grade------------------");
             Console.WriteLine("Student Id:");
             var studentId = Console.ReadLine();
             Console.WriteLine("Course Id:");
@@ -131,46 +140,47 @@ namespace SCHOOLProj
             SqlDataAdapter data = new SqlDataAdapter(getSC, sqlcon);
             DataTable t3 = new DataTable();
             data.Fill(t3);
-            string studentCourse = t3.Rows[0]["StId"].ToString();
 
-            using (SqlConnection objConn = new SqlConnection(@"Data Source = DESKTOP-B2K268C; Initial Catalog = SCHOOL; Integrated Security = true"))
+            try
             {
-                objConn.Open();
-                trans = objConn.BeginTransaction();
-                SqlCommand objCmd1 = new SqlCommand("INSERT INTO Grades (Grade, SetDate, FK_StudentCourse) VALUES ('" + studentGrade + "', '" + setDate + "' , '" + studentCourse + "')", objConn);
+                string studentCourse = t3.Rows[0]["StId"].ToString();
 
-                try
+                using (SqlConnection objConn = new SqlConnection(@"Data Source = DESKTOP-B2K268C; Initial Catalog = SCHOOL; Integrated Security = true"))
                 {
-                    
-
-                    //string setGrade = "INSERT INTO Grades (Grade, SetDate, FK_StudentCourse) VALUES ('" + studentGrade + "', '" + setDate + "' , '" + studentCourse + "')";
-                    //SqlDataAdapter data2 = new SqlDataAdapter(setGrade, objConn);
-
-                    //DataTable t4 = new DataTable();
-                    //data2.Fill(t4);
-                    objCmd1.ExecuteNonQuery();
-                    trans.Commit();
+                    objConn.Open();
+                    SqlCommand command = objConn.CreateCommand();
+                    trans = objConn.BeginTransaction();
+                    command.Connection = objConn;
+                    command.Transaction = trans;
+                    try
+                    {
+                        command.CommandText = "INSERT INTO Grades (Grade, SetDate, FK_StudentCourse) VALUES ('" + studentGrade + "', '" + setDate + "' , '" + studentCourse + "')";
+                        command.ExecuteNonQuery();
+                        trans.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        trans.Rollback();
+                    }
+                    finally
+                    {
+                        objConn.Close();
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    trans.Rollback();
-                }
-                finally
-                {
-                    objConn.Close();
-                }
-
-
             }
-            //foreach (DataRow dr1 in t3.Rows)
-            //{
-            //    Console.WriteLine(dr1["StudentId"] + " " + dr1["StudentFName"] + " " + dr1["StudentLName"]);
-            //}
+            catch (Exception ex)
+            {
+
+                Console.WriteLine("Could not add grade, are you sure the student have that course?");
+            }
+            
         }
 
         public void ShowActiveCourses()
         {
+            Console.WriteLine("-----------------Active Courses--------------------");
+
             using (var context = new SCHOOLContext())
             {
                 var activeCourses = from c in context.Courses
@@ -228,20 +238,16 @@ namespace SCHOOLProj
             }
         }
 
-        public void GetStudentInformationFromId()
+        public void GetStudentsFromEF()
         {
             using (var context = new SCHOOLContext())
             {
                 var students = from s in context.Students
                                select s
                                     ;
-
-                //var student = students.Where(s => s.StudentId == id).FirstOrDefault<Student>();
-                //Console.WriteLine($"Student: {student.StudentFname} {student.StudentLname} ");
                 foreach (var s in students)
                 {
                     Console.WriteLine($"Student: {s.StudentFname} {s.StudentLname}");
-                    Console.WriteLine("Has these active courses:");
 
                 }
             }
